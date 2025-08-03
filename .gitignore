@@ -1,3 +1,8 @@
 */*
 !*/Makefile
 !*/*.md
+!README
+!README.md
+!LICENSE
+!LICENSE.txt
+!.gitignore
