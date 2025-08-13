@@ -23,10 +23,10 @@ C_FLAGS_Release 		= -O3
 C_FLAGS_Debug 			= -O3 -g3
 
 # Possible alternative to add targets
-$(eval $(call add_executable, NAME_EXE, SOURCES))
-$(eval $(call add_staticlibrary, NAMELIB, SOURCES))
-$(eval $(call add_sharedlibrary, NAMEDLL, SOURCES))
-$(eval $(call add_custom, NAMEDLL, TYPE, SOURCES))
+# $(eval $(call add_executable, NAME_EXE, SOURCES))
+# $(eval $(call add_staticlibrary, NAMELIB, SOURCES))
+# $(eval $(call add_sharedlibrary, NAMEDLL, SOURCES))
+# $(eval $(call add_custom, NAMEDLL, TYPE, SOURCES))
 
 
 
