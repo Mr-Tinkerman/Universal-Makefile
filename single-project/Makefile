@@ -93,26 +93,26 @@ DEL   ?= "${TOOL_PATH}${RM}"
 OBJCOPY ?= "${TOOL_PATH}objcopy"
 
 # Format System Commands
-$(eval $(call _formatcmd,MKDIR))
-$(eval $(call _formatcmd,COPY))
-$(eval $(call _formatcmd,DEL))
+$(call _formatcmd,MKDIR)
+$(call _formatcmd,COPY)
+$(call _formatcmd,DEL)
 
 RM := ${DEL}
 
 # Format Compilation Commands
-$(eval $(call _formatcmd,AR))
-$(eval $(call _formatcmd,AS))
-$(eval $(call _formatcmd,CC))
-$(eval $(call _formatcmd,CXX))
-$(eval $(call _formatcmd,LD))
-$(eval $(call _formatcmd,PP))
+$(call _formatcmd,AR)
+$(call _formatcmd,AS)
+$(call _formatcmd,CC)
+$(call _formatcmd,CXX)
+$(call _formatcmd,LD)
+$(call _formatcmd,PP)
 
 CPP := $(if ${PP},${PP},${CC} -E)
 
 # Format Embedded Commands
-$(eval $(call _formatcmd,OBJCOPY))
-$(eval $(call _formatcmd,MONITOR))
-$(eval $(call _formatcmd,FLASH))
+$(call _formatcmd,OBJCOPY)
+$(call _formatcmd,MONITOR)
+$(call _formatcmd,FLASH)
 
 
 
