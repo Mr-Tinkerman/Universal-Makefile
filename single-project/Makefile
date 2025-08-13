@@ -72,7 +72,11 @@ HOST_MACHINE := ${HOST_OS}, ${HOST_ARCH}
 # ======== Variable Redeclaration ========
 
 # Directory '/' Appending
-TOOL_PATH := $(if ${TOOL_PATH}, ${TOOL_PATH:/=}/,)
+TOOL_PATH      := $(if ${TOOL_PATH}, ${TOOL_PATH:/=}/,)
+BINARY_DIR     := $(if ${BINARY_DIR}, ${BINARY_DIR:/=}/,)
+BUILD_DIR      := $(if ${BUILD_DIR}, ${BUILD_DIR:/=}/,)
+LIBRARY_DIR    := $(if ${LIBRARY_DIR}, ${LIBRARY_DIR:/=}/,)
+PUBLIC_API_DIR := $(if ${PUBLIC_API_DIR}, ${PUBLIC_API_DIR:/=}/,)
 
 # Linker Script Formatting
 LINKER_SCRIPTS := $(if ${LINKER_SCRIPTS},$(foreach LS,${LINKER_SCRIPTS},${LS:%=-T%}))
