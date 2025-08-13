@@ -19,8 +19,11 @@ PUBLIC_API_DIR = include/
 SOURCE_DIRS = src/ src/core/
 SOURCE_FILES = # Ex: exclude/include_me.c
 
-C_FLAGS_Release 		= -O3
-C_FLAGS_Debug 			= -O3 -g3
+CFLAGS = -Wall -Werror -Wshadow -Wdouble-promotion -Wundef
+LDFLAGS = -Wl,--gc-sections -fstack-protector -fsanitize=address
+
+CFLAGS_Release = -O3
+CFLAGS_Debug   = -O3 -g3
 
 # Possible alternative to add targets
 # $(eval $(call add_executable, NAME_EXE, SOURCES))
@@ -78,9 +81,9 @@ LINKER_SCRIPTS_${CONFIG} := $(if ${LINKER_SCRIPTS_${CONFIG}},$(foreach LS,${LINK
 # Flag Consolidation
 ARFLAGS  := ${ARFLAGS} ${ARFLAGS_${CONFIG}} rv
 ASFLAGS  := ${ASFLAGS} ${ASFLAGS_${CONFIG}}
-CFLAGS   := ${CFLAGS} ${CFLAGS_${CONFIG}} -Wall -Werror -Wshadow -Wdouble-promotion -Wundef
+CFLAGS   := ${CFLAGS} ${CFLAGS_${CONFIG}}
 CXXFLAGS := ${CXXFLAGS} ${CXXFLAGS_${CONFIG}} ${C_FLAGS}
-LDFLAGS  := ${LDFLAGS} ${LDFLAGS_${CONFIG}} ${LINKER_SCRIPTS} ${LINKER_SCRIPTS_${CONFIG}} -Wl,--gc-sections -fstack-protector -fsanitize=address
+LDFLAGS  := ${LDFLAGS} ${LDFLAGS_${CONFIG}} ${LINKER_SCRIPTS} ${LINKER_SCRIPTS_${CONFIG}}
 PPFLAGS  := ${PPFLAGS} ${PPFLAGS_${CONFIG}}
 
 LDLIBS   := ${LDLIBS} ${LDLIBS_${CONFIG}}
