@@ -16,8 +16,10 @@ LIBRARY_DIR    = lib/
 
 PUBLIC_API_DIR = include/
 
-SOURCE_DIRS = src/ src/core/
-SOURCE_FILES = # Ex: exclude/include_me.c
+# SOURCE_DIRS = src/ src/core/
+# SOURCE_FILES = # Ex: exclude/include_me.c
+
+SOURCES = src/ src/core/
 
 CFLAGS = -Wall -Werror -Wshadow -Wdouble-promotion -Wundef
 LDFLAGS = -Wl,--gc-sections -fstack-protector -fsanitize=address
@@ -121,9 +123,35 @@ $(call _formatcmd,OBJCOPY)
 $(call _formatcmd,MONITOR)
 $(call _formatcmd,FLASH)
 
+SOURCE_DIRS = $(filter %/,${SOURCES})
+SOURCE_FILES = $(filter-out %/,${SOURCES})
+
+OBJECTS = ${SOURCE_FILES} $(foreach SRC_DIR,${SOURCE_DIRS},$(wildcard ${SRC_DIR}*.c))
+OBJECTS := $(sort ${OBJECTS:%.c=${BUILD_DIR}${CONFIG}/%.c.o})
+
+REQUIRED_DIRS := ${SOURCE_DIRS} $(dir ${SOURCE_FILES})
+REQUIRED_DIRS := ${REQUIRED_DIRS:%=${BUILD_DIR}${CONFIG}/%} ${BINARY_DIR}${CONFIG}/ ${LIBRARY_DIR} ${PUBLIC_API_DIR}
 
 
 
+# ======== Build Rules ========
 
-SOURCES = $(foreach SRC_DIR, ${SOURCE_DIRS:/=}, $(foreach SRC_EXT, ${SRC_EXTS}, $(wildcard ${SRC_DIR}/*.${SRC_EXT:.%=%})))
-OBJECTS =  $(SOURCES:${SOURCE_DIR:/=}/%=${BUILD_DIR:/=}/${CONFIG:/=}/%.o)
+.SECONDARY:
+.PHONY: all
+
+all: ${BINARY_DIR}${CONFIG}/test
+
+%/:
+	${MKDIR} $@
+
+${BUILD_DIR}${CONFIG}/%.S.o: %.S
+	${AS} ${CFLAGS} -c $< -o $@
+
+${BUILD_DIR}${CONFIG}/%.c.o: %.c
+	${CC} ${CFLAGS} -c $< -o $@
+
+${BUILD_DIR}${CONFIG}/%.cpp.o: %.cpp
+	${CXX} ${CFLAGS} -c $< -o $@
+
+${BINARY_DIR}${CONFIG}/test: ${REQUIRED_DIRS} ${OBJECTS}
+	$(if $(filter 1,${OPT_USE_LDLINKING}),${LD},${CC}) ${LDFLAGS} ${OBJECTS} -o $@
