@@ -70,9 +70,9 @@ entry.  More problems come from two self imposed restrictions, that being:
 
 
 
-### 8/14/2025
+### 8/14/2025 - Scott Tinkerman
 
-Frankly, I went to get food, then started doom scrolling.  Because of this.  I
+Frankly, I went to get food, then started DOOM scrolling.  Because of this.  I
 didn't finish my notes from before.  It's currently 12:30 AM and I've finally
 returned to finish this.
 
@@ -130,7 +130,20 @@ Scuffed Dirty Girl Recipe:
 
 - Root Beer
 - Heavy Cream
-- Honey Whisky
+- American Honey Whisky (Wild Turkey logo)
 
 Mix proportions to taste because I sure as hell don't measure, or even have the
 numbers in the first place.
+
+
+
+### 9/3/2025 - Scott Tinkerman
+
+I did technically do what I said, but haven't finished the code on account of my
+severe lack of discipline.  Part of the importance of this project is to build
+my own discipline while creating something cool at the same time.  I'm not proud
+of my behavior both in this matter or the previous entry but I would rather be
+transparent and honest than sugar-coat this stuff.  Speaking of transparency, I
+did go and edit the previous entry slightly and added my name to the entry.  I'm
+not so much stuck right now as I'm more concerned with explaining my absence and
+edits in this file.
