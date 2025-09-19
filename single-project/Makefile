@@ -5,21 +5,14 @@
 # ======== BEGIN USER CONFIGURATION ========
 # ==========================================
 
-TARGET_FILE = target.exe
+TARGET_EXECUTABLES := TARGEX
 
-TOOLCHAIN_PREFIX = # Ex. xtensa-${PLATFORM}-elf-
-PLATFORM = # Ex. esp32s3
+TARGEX_REALNAME := targetexample
+TARGEX_SOURCES := src/ src/app/
 
-BINARY_DIR     = bin/
-BUILD_DIR      = build/
-LIBRARY_DIR    = lib/
+DEFAULT_TARGETS := TARGEX
 
-PUBLIC_API_DIR = include/
-
-# SOURCE_DIRS = src/ src/core/
-# SOURCE_FILES = # Ex: exclude/include_me.c
-
-SOURCES = src/ src/core/
+SOURCES := src/core/
 
 CFLAGS = -Wall -Werror -Wshadow -Wdouble-promotion -Wundef
 LDFLAGS = -Wl,--gc-sections -fstack-protector -fsanitize=address
@@ -27,11 +20,8 @@ LDFLAGS = -Wl,--gc-sections -fstack-protector -fsanitize=address
 CFLAGS_Release = -O3
 CFLAGS_Debug   = -O3 -g3
 
-# Possible alternative to add targets
-# $(eval $(call add_executable, NAME_EXE, SOURCES))
-# $(eval $(call add_staticlibrary, NAMELIB, SOURCES))
-# $(eval $(call add_sharedlibrary, NAMEDLL, SOURCES))
-# $(eval $(call add_custom, NAMEDLL, TYPE, SOURCES))
+# TOOLCHAIN_PREFIX = xtensa-${PLATFORM}-elf-
+# PLATFORM = esp32s3
 
 
 
@@ -55,6 +45,22 @@ $(eval $1 := $(if ${$1_QFILTER},${$1_FW:"%=%} ${$1_INSIDE} ${$1_LW:%"=%}, \
 $(eval $1 := $(strip ${$1}))
 endef
 
+define _gentargetprereqs
+$(eval $1_REALNAME ?= $1)
+$(eval $1_OUTFILE := ${$1_REALNAME}$2)
+$(eval TARGETFILES += ${$1_OUTFILE})
+
+$(eval $1_SOURCES := ${SOURCES} ${$1_SOURCES} ${$1_SOURCES_${ARCH}} ${$1_SOURCES_${CONFIG}} ${$1_SOURCES_${CONFIG}_${ARCH}})
+
+$(eval $1_SOURCE_DIRS = $(filter %/,${$1_SOURCES}))
+$(eval $1_SOURCE_FILES = $(filter-out %/,${$1_SOURCES}))
+
+$(eval $1_OBJECTS := $(patsubst %,${BUILD_DIR}${CONFIG}/%.o,${$1_SOURCE_FILES} $(filter ${SRC_EXTS},$(foreach SRC_DIR,${$1_SOURCE_DIRS},$(wildcard ${SRC_DIR}*)))))
+$(eval ${$1_OUTFILE}_OBJECTS := ${$1_OBJECTS})
+
+$(eval $1_REQDIRS := $(addprefix ${BUILD_DIR}${CONFIG}/,${$1_SOURCE_DIRS} $(dir ${$1_SOURCE_FILES})) ${REQDIRS})
+endef
+
 
 
 # ======== Environment Detection ========
@@ -71,14 +77,26 @@ HOST_MACHINE := ${HOST_OS}, ${HOST_ARCH}
 
 
 
-# ======== Variable Redeclaration ========
+# ======== Caching ========
+
+-include cache.mk
+
+# Verify $(CONFIG) is set or cached
+CONFIG := $(if ${CONFIG},${CONFIG},${LAST_CONFIG})
+$(info ${CONFIG})
+$(info ${LAST_CONFIG})
+$(info $(if ${CONFIG},Exists,Null))
+
+
+
+# ======== Variable Transformation ========
 
 # Directory '/' Appending
 TOOL_PATH      := $(if ${TOOL_PATH}, ${TOOL_PATH:/=}/,)
-BINARY_DIR     := $(if ${BINARY_DIR}, ${BINARY_DIR:/=}/,)
-BUILD_DIR      := $(if ${BUILD_DIR}, ${BUILD_DIR:/=}/,)
-LIBRARY_DIR    := $(if ${LIBRARY_DIR}, ${LIBRARY_DIR:/=}/,)
-PUBLIC_API_DIR := $(if ${PUBLIC_API_DIR}, ${PUBLIC_API_DIR:/=}/,)
+BINARY_DIR     := $(if ${BINARY_DIR}, ${BINARY_DIR:/=}/,bin/)
+BUILD_DIR      := $(if ${BUILD_DIR}, ${BUILD_DIR:/=}/,build/)
+LIBRARY_DIR    := $(if ${LIBRARY_DIR}, ${LIBRARY_DIR:/=}/,lib/)
+PUBLIC_API_DIR := $(if ${PUBLIC_API_DIR}, ${PUBLIC_API_DIR:/=}/,include/)
 
 # Linker Script Formatting
 LINKER_SCRIPTS_${CONFIG} := $(addprefix -T ,${LINKER_SCRIPTS_${CONFIG}:-T%=%})
@@ -117,35 +135,50 @@ $(call _formatcmd,LD)
 $(call _formatcmd,PP)
 
 CPP := $(if ${PP},${PP},${CC} -E)
+LD  := $(if $(filter 1,${OPT_USE_LDLINKING}),${LD},${CC})
 
 # Format Embedded Commands
 $(call _formatcmd,OBJCOPY)
 $(call _formatcmd,MONITOR)
 $(call _formatcmd,FLASH)
 
-SOURCE_DIRS = $(filter %/,${SOURCES})
-SOURCE_FILES = $(filter-out %/,${SOURCES})
+# Consolidate Source Extensions
+SRC_EXTS := .S .c .cpp ${SRC_EXTS}
+SRC_EXTS := $(foreach EXT,${SRC_EXTS},%${EXT})
 
-OBJECTS = ${SOURCE_FILES} $(foreach SRC_DIR,${SOURCE_DIRS},$(wildcard ${SRC_DIR}*.c))
-OBJECTS := $(sort ${OBJECTS:%.c=${BUILD_DIR}${CONFIG}/%.c.o})
 
-REQUIRED_DIRS := ${SOURCE_DIRS} $(dir ${SOURCE_FILES})
-REQUIRED_DIRS := ${REQUIRED_DIRS:%=${BUILD_DIR}${CONFIG}/%} ${BINARY_DIR}${CONFIG}/ ${LIBRARY_DIR} ${PUBLIC_API_DIR}
+
+# ======== Target / Prereq Generation ========
+
+ALL_TARGETS     := ${TARGET_EXECUTABLES} ${TARGET_BINARIES} ${TARGET_STATICLIBS} ${TARGET_SHAREDLIBS}
+DEFAULT_TARGETS := ${TARGET_EXECUTABLES} ${TARGET_BINARIES}
+
+# Objects and Directory List Generation from Sources
+SOURCES := ${SOURCES} ${SOURCES_${ARCH}} ${SOURCES_${CONFIG}} ${SOURCES_${CONFIG}_${ARCH}}
+REQDIRS := ${BINARY_DIR}${CONFIG}/ ${LIBRARY_DIR} ${PUBLIC_API_DIR}
+
+$(foreach T, ${TARGET_EXECUTABLES}, $(call _gentargetprereqs,${T},.exe))
+$(foreach T, ${TARGET_STATICLIBS},  $(call _gentargetprereqs,${T},.a))
+$(foreach T, ${TARGET_SHAREDLIBS},  $(call _gentargetprereqs,${T},.so))
+$(foreach T, ${TARGET_BINARIES},    $(call _gentargetprereqs,${T},.bin))
 
 
 
 # ======== Build Rules ========
 
+.SECONDEXPANSION:
 .SECONDARY:
-.PHONY: all
+.PHONY: all default ${ALL_TARGETS}
 
-all: ${BINARY_DIR}${CONFIG}/test
+default: ${DEFAULT_TARGETS}
+
+all: ${ALL_TARGETS}
 
 %/:
 	${MKDIR} $@
 
 ${BUILD_DIR}${CONFIG}/%.S.o: %.S
-	${AS} ${CFLAGS} -c $< -o $@
+	${AS} ${CFLAGS} $< -o $@
 
 ${BUILD_DIR}${CONFIG}/%.c.o: %.c
 	${CC} ${CFLAGS} -c $< -o $@
@@ -153,5 +186,7 @@ ${BUILD_DIR}${CONFIG}/%.c.o: %.c
 ${BUILD_DIR}${CONFIG}/%.cpp.o: %.cpp
 	${CXX} ${CFLAGS} -c $< -o $@
 
-${BINARY_DIR}${CONFIG}/test: ${REQUIRED_DIRS} ${OBJECTS}
-	$(if $(filter 1,${OPT_USE_LDLINKING}),${LD},${CC}) ${LDFLAGS} ${OBJECTS} -o $@
+${ALL_TARGETS}: $${$$@_REQDIRS} $${$$@_TARGETDEPS} $${$$@_OUTFILE}
+
+${TARGETFILES}: $${$$@_OBJECTS}
+	${LD} ${LDFLAGS} $< -o $@
