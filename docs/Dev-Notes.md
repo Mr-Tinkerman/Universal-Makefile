@@ -1,4 +1,4 @@
-# Design Notes: a random place to dump my ideas
+# Dev Notes: a random place to dump my ideas
 
 This document's purpose is to provide a place for me to jot ideas down.  This is
 **NOT** a formal document and will likely be unformatted and messy.  Nothing in
@@ -147,3 +147,20 @@ transparent and honest than sugar-coat this stuff.  Speaking of transparency, I
 did go and edit the previous entry slightly and added my name to the entry.  I'm
 not so much stuck right now as I'm more concerned with explaining my absence and
 edits in this file.
+
+
+
+### 9/20/2025 - Scott Tinkerman
+
+I'm already dissatisfied with the solution I came up with to generate the build
+rules.  The rules to generate the targets currently prefix the prerequisites
+with the file name instead of the the target id.  I've been taking advantage of
+secondary expansion to generate the rules but the code is messy and is the main
+reason everything has to be prefixed with the file name.  It sucks but I just
+have to suck it up and rewrite it.  My new approach will attempt to use custom
+functions to generate the build rules.
+
+Also, the User Guide is very outdated.  I'll update it after I implement what I
+described in the previous paragraph.  I'm also renaming this document to
+Dev Notes as it fits the purpose of this document better.
+
