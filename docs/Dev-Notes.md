@@ -164,3 +164,20 @@ Also, the User Guide is very outdated.  I'll update it after I implement what I
 described in the previous paragraph.  I'm also renaming this document to
 Dev Notes as it fits the purpose of this document better.
 
+
+
+### 9/25/2025 - Scott Tinkerman
+
+I'm pasting a section of Makefile code I wrote because it's distracting me but I
+need to keep it somewhere for future reference.
+
+```make
+$(foreach T,${ALL_TARGETS},$(eval ${${T}_REALNAME}.txt: TARG := ${T}))
+$(foreach T,${ALL_TARGETS},$(eval ${${T}_REALNAME}.txt: $(foreach TDEP,${${T}_TARGETDEPS},${${TDEP}_REALNAME}.txt) CFG.PLTFM.TGX.obj.txt CFG.PLTFM.TARGEX.obj.txt CFG.PLTFM.obj.txt))
+
+$(foreach T,${ALL_TARGETS},$(eval CFG.PLTFM.${T}%.txt: TARG := ${T}))
+CFG.PLTFM.%: TARG := 
+
+%.txt:
+	@echo $@ ${TARG}
+```
